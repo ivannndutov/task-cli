@@ -29,7 +29,7 @@ namespace TaskCLI
             UpdatedAt = CreatedAt;
         }
 
-        public string Print()
+        public override string ToString()
         {
             return $"Task {Id}: {Description}\n\rStatus: {PrintStatus()}\n\rCreated: {CreatedAt}\n\rUpdated: {UpdatedAt}";
         }

@@ -41,18 +41,61 @@ namespace TaskCLI
             Tasks.Add(new Task(description));
         }
 
-        public void ListTasks()
+        public void DeleteTask(int id)
+        {
+            int removed = Tasks.RemoveAll(t => t.Id == id);
+            if (removed > 0)
+            {
+                Console.WriteLine("Task successfully deleted");
+            } else
+            {
+                Console.WriteLine($"No tasks wit id {id} were found.");
+            }
+        }
+
+        public void MarkTaskInProgress(int id)
+        {
+            UpdateTaskStatus(id, TaskStatus.IN_PROGRESS);
+        }
+
+        public void MarkTaskDone(int id)
+        {
+            UpdateTaskStatus(id, TaskStatus.DONE);
+        }
+
+        private void UpdateTaskStatus(int id, TaskStatus status)
+        {
+            Task? foundTask = Tasks.Find(t => t.Id == id);
+            if (foundTask != null)
+            {
+                foundTask.Status = status;
+                foundTask.UpdatedAt = DateTime.Now;
+            }
+            else
+            {
+                Console.WriteLine($"There is no task with id {id}.");
+            }
+        }
+
+        public void ListTasks(Predicate<Task> filter)
         {
             if (Tasks.Count > 0)
             {
-                foreach(Task task in Tasks)
+                var filteredTasks = Tasks.FindAll(filter);
+                if (filteredTasks != null && filteredTasks.Count > 0)
                 {
-                    Console.WriteLine(task.Print());
-                    Console.WriteLine();
+                    foreach(Task task in filteredTasks)
+                    {
+                        Console.WriteLine(task);
+                        Console.WriteLine();
+                    }
+                } else
+                {
+                    Console.WriteLine("There are no tasks for specified condition.");
                 }
             } else
             {
-                Console.WriteLine("No tasks found.");
+                Console.WriteLine("There are no tasks yet.");
             }
         }
 
@@ -63,7 +106,7 @@ namespace TaskCLI
             {
                 foundTask.Description = description;
                 foundTask.UpdatedAt = DateTime.Now;
-                foundTask.Print();
+                Console.WriteLine(foundTask);
             } else
             {
                 Console.WriteLine($"No task with id {id} was found");
