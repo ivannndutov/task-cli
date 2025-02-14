@@ -29,5 +29,25 @@ namespace TaskCLI
             UpdatedAt = CreatedAt;
         }
 
+        public string Print()
+        {
+            return $"Task {Id}: {Description}\n\rStatus: {PrintStatus()}\n\rCreated: {CreatedAt}\n\rUpdated: {UpdatedAt}";
+        }
+
+        public string PrintStatus()
+        {
+           switch(Status)
+            {
+                case TaskStatus.TODO:
+                    return "Todo";
+                case TaskStatus.IN_PROGRESS:
+                    return "In progress";
+                case TaskStatus.DONE:
+                    return "Done";
+                default:
+                    return "None";
+            }
+        }
+
     }
 }

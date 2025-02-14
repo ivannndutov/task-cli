@@ -41,6 +41,35 @@ namespace TaskCLI
             Tasks.Add(new Task(description));
         }
 
+        public void ListTasks()
+        {
+            if (Tasks.Count > 0)
+            {
+                foreach(Task task in Tasks)
+                {
+                    Console.WriteLine(task.Print());
+                    Console.WriteLine();
+                }
+            } else
+            {
+                Console.WriteLine("No tasks found.");
+            }
+        }
+
+        public void UpdateTaskDescription(int id, string description)
+        {
+            Task? foundTask = Tasks.Find(t => t.Id == id);
+            if (foundTask != null)
+            {
+                foundTask.Description = description;
+                foundTask.UpdatedAt = DateTime.Now;
+                foundTask.Print();
+            } else
+            {
+                Console.WriteLine($"No task with id {id} was found");
+            }
+        }
+
         public void SaveTasks()
         {
             try
