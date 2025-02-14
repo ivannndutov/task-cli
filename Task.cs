@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TaskCLI
+namespace task_cli
 {
     public enum TaskStatus
     {
@@ -18,36 +18,46 @@ namespace TaskCLI
         public int Id { get; }
         public string Description { get; set; }
         public TaskStatus Status { get; set; }
-        public DateTime CreatedAt{ get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; }
+        public DateTime UpdatedAt { get; private set; }
 
         public Task(string description)
         {
-            Id = System.Threading.Interlocked.Increment(ref _counter);
+            Id = Interlocked.Increment(ref _counter);
             Description = description;
             CreatedAt = DateTime.Now;
             UpdatedAt = CreatedAt;
         }
 
-        public override string ToString()
-        {
-            return $"Task {Id}: {Description}\n\rStatus: {PrintStatus()}\n\rCreated: {CreatedAt}\n\rUpdated: {UpdatedAt}";
-        }
 
-        public string PrintStatus()
+        public void UpdateDescription(string newDescription)
         {
-           switch(Status)
+            if (!string.IsNullOrWhiteSpace(newDescription) && Description != newDescription)
             {
-                case TaskStatus.TODO:
-                    return "Todo";
-                case TaskStatus.IN_PROGRESS:
-                    return "In progress";
-                case TaskStatus.DONE:
-                    return "Done";
-                default:
-                    return "None";
+                Description = newDescription;
+                UpdatedAt = DateTime.Now;
             }
         }
+
+        public void UpdateStatus(TaskStatus newStatus)
+        {
+            if (Status != newStatus)
+            {
+                Status = newStatus;
+                UpdatedAt = DateTime.Now;
+            }
+        }
+
+        public override string ToString() =>
+            $"Task {Id}: {Description}\n\rStatus: {GetStatusText()}\n\rCreated: {CreatedAt}\n\rUpdated: {UpdatedAt}";
+
+        public string GetStatusText() => Status switch
+        {
+            TaskStatus.TODO => "Todo",
+            TaskStatus.IN_PROGRESS => "In progress",
+            TaskStatus.DONE => "Done",
+            _ => "Unknown"
+        };
 
     }
 }

@@ -1,115 +1,133 @@
-﻿using TaskCLI;
+﻿using task_cli;
 
-namespace TaskCLI
+namespace task_cli
 {
     class Program
     {
         static void Main(string[] args)
         {
-            User? user = null;
-            if (args.Length >= 1)
+            if (args.Length == 0)
             {
-                user = new User();
+                PrintUsage();
+                return;
+            }
 
-                if (args[0] == "add" && args.Length >= 2)
-                {
-                    user.AddTask(args[1]);
-                }
-                else if (args[0] == "update")
-                {
-                    if (args.Length >= 3)
+            using var user = new User();
+            string command = args[0].ToLowerInvariant();
+            switch (command)
+            {
+                case "add":
+                    if (args.Length < 2)
                     {
-                        if (int.TryParse(args[1], out int id))
-                        {
-                            user.UpdateTaskDescription(id, args[2]);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Id must be a number!");
-                        }
+                        Console.WriteLine("Not enough arguments to add the task.");
                     }
                     else
                     {
-                        Console.WriteLine("Not enough arguments to update a task");
+                        user.AddTask(args[1]);
                     }
-                }
-                else if (args[0] == "delete")
-                {
-                    if (args.Length >= 2)
+                    break;
+                case "update":
+                    if (!TryGetId(args, out int updateId, minArgs: 3))
                     {
-                        if (int.TryParse(args[1], out int id))
-                        {
-                            user.DeleteTask(id);
-                        } else
-                        {
-                            Console.WriteLine("Id must be a number!");
-                        }
-                    } else
-                    {
-                        Console.WriteLine("Not enough arguments to delete a task");
-                    }
-                } else if (args[0] == "mark-in-progress")
-                {
-                    if (args.Length >= 2)
-                    {
-                        if (int.TryParse(args[1], out int id))
-                        {
-                            user.MarkTaskInProgress(id);
-                        } else
-                        {
-                            Console.WriteLine("Id must be a number!");
-                        }
-                    } else
-                    {
-                        Console.WriteLine("Not enough arguments to mark the task");
-                    }
-                }
-                else if (args[0] == "mark-done")
-                {
-                    if (args.Length >= 2)
-                    {
-                        if (int.TryParse(args[1], out int id))
-                        {
-                            user.MarkTaskDone(id);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Id must be a number!");
-                        }
+                        Console.WriteLine("Not enough arguments to update a task or id is invalid.");
                     }
                     else
                     {
-                        Console.WriteLine("Not enough arguments to mark the task");
+                        user.UpdateTaskDescription(updateId, args[2]);
                     }
-                }
-                else if (args[0] == "list")
-                {
-                    if (args.Length >= 2)
+                    break;
+                case "delete":
+                    if (!TryGetId(args, out int deleteId, minArgs: 2))
                     {
-                        if (args[1] == "done")
-                        {
-                            user.ListTasks(task => task.Status == TaskStatus.DONE);
-                        } else if (args[1] == "todo")
-                        {
-                            user.ListTasks(task => task.Status == TaskStatus.TODO);
-                        } else if (args[1] == "in-progress")
-                        {
-                            user.ListTasks(task => task.Status == TaskStatus.IN_PROGRESS);
-                        } else
-                        {
-                            Console.WriteLine("Cannot list by this condition. The only available are: 'todo', 'in-progress' and 'done'");
-                        }
-                    } else
+                        Console.WriteLine("Not enough arguments to delete a task or id is invalid.");
+                    }
+                    else
                     {
-                        user.ListTasks(task => true);
-                    }   
-                }
-            }
+                        user.DeleteTask(deleteId);
+                    }
+                    break;
 
-            if (user != null)
-            {
-                user.Dispose();
+                case "mark-in-progress":
+                    if (!TryGetId(args, out int markInProgressId, minArgs: 2))
+                    {
+                        Console.WriteLine("Not enough arguments to mark task in-progress or id is invalid.");
+                    }
+                    else
+                    {
+                        user.MarkTaskInProgress(markInProgressId);
+                    }
+                    break;
+
+                case "mark-done":
+                    if (!TryGetId(args, out int markDoneId, minArgs: 2))
+                    {
+                        Console.WriteLine("Not enough arguments to mark task done or id is invalid.");
+
+                    }
+                    else
+                    {
+                        user.MarkTaskDone(markDoneId);
+                    }
+                    break;
+
+                case "list":
+                    HandleListCommand(user, args);
+                    break;
+
+                default:
+                    Console.WriteLine("Unknown command.");
+                    PrintUsage();
+                    break;
             }
+        }
+
+        private static bool TryGetId(string[] args, out int id, int minArgs)
+        {
+            id = 0;
+            if (args.Length < minArgs)
+                return false;
+            return int.TryParse(args[1], out id);
+        }
+
+        private static void HandleListCommand(User user, string[] args)
+        {
+            if (args.Length < 2)
+            {
+                user.ListTasks(task => true);
+            }
+            else
+            {
+                string condition = args[1].ToLowerInvariant();
+                switch (condition)
+                {
+
+                    case "done":
+                        user.ListTasks(task => task.Status == TaskStatus.DONE);
+                        break;
+                    case "todo":
+                        user.ListTasks(task => task.Status == TaskStatus.TODO);
+                        break;
+                    case "in-progress":
+                        user.ListTasks(task => task.Status == TaskStatus.IN_PROGRESS);
+                        break;
+                    default:
+                        Console.WriteLine("Cannot list by this condition. Available conditions: 'todo', 'in-progress' and 'done'");
+                        break;
+                }
+
+            }
+        }
+
+        private static void PrintUsage()
+        {
+            Console.WriteLine("Usage: task_cli <command> [parameters]");
+            Console.WriteLine("Commands:");
+            Console.WriteLine("  add <description>");
+            Console.WriteLine("  update <id> <new description>");
+            Console.WriteLine("  delete <id>");
+            Console.WriteLine("  mark-in-progress <id>");
+            Console.WriteLine("  mark-done <id>");
+            Console.WriteLine("  list [todo|in-progress|done]");
         }
     }
 }
